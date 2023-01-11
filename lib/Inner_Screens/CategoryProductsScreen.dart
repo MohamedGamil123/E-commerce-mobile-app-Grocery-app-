@@ -7,9 +7,24 @@ import 'package:grocery_app/Widgets/customText.dart';
 import 'package:grocery_app/Widgets/proWid.dart';
 import 'package:provider/provider.dart';
 
-class CategoryProducts extends StatelessWidget {
+class CategoryProducts extends StatefulWidget {
   static const catPro = "catPro";
   const CategoryProducts({Key? key}) : super(key: key);
+
+  @override
+  State<CategoryProducts> createState() => _CategoryProductsState();
+}
+
+class _CategoryProductsState extends State<CategoryProducts> {
+  TextEditingController textSearchController = TextEditingController();
+  FocusNode textSearchfocusnode = FocusNode();
+  List<ProductModel> productBySearch = [];
+  @override
+  void dispose() {
+    textSearchController.dispose();
+    textSearchfocusnode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +32,9 @@ class CategoryProducts extends StatelessWidget {
     final String categoryname =
         ModalRoute.of(context)!.settings.arguments as String;
     final List<ProductModel> catproducts =
-        allproductProvider.getproductByCategory(categoryname);
+        allproductProvider.getproductByCategory(
+      categoryname,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -25,7 +42,7 @@ class CategoryProducts extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
             },
-            child: Icon(
+            child: const Icon(
               IconlyLight.arrowLeft2,
               color: Colors.black,
             )),
@@ -38,7 +55,7 @@ class CategoryProducts extends StatelessWidget {
         ),
       ),
       body: catproducts.isEmpty
-          ? Empty_products()
+          ? const Empty_products()
           : ListView(
               children: [
                 Column(
@@ -46,43 +63,74 @@ class CategoryProducts extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
-                        style: TextStyle(color: Colors.black),
+                        focusNode: textSearchfocusnode,
+                        controller: textSearchController,
+                        onChanged: (valueee) {
+                          setState(() {
+                            productBySearch =
+                                allproductProvider.getProductBySearch(valueee);
+                          });
+                        },
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
+                                borderSide:
+                                    const BorderSide(color: Colors.black),
                                 borderRadius: BorderRadius.circular(15)),
                             focusedBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: Colors.green.shade600),
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            label: Text(
+                            label: const Text(
                               "Search products ...",
                               style: TextStyle(color: Colors.black),
                             ),
-                            prefixIcon: Icon(IconlyLight.search),
+                            prefixIcon: const Icon(IconlyLight.search),
                             prefixIconColor: Colors.green.shade600,
                             border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
+                                borderSide:
+                                    const BorderSide(color: Colors.black),
                                 borderRadius: BorderRadius.circular(15),
                                 gapPadding: 15),
                             hintText: "What's in your mind..."),
                       ),
                     ),
-                    GridView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisExtent: 250,
-                              mainAxisSpacing: 10),
-                      itemCount: catproducts.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ChangeNotifierProvider.value(
-                            value: catproducts[index], child: ProWid());
-                      },
-                    ),
+                    textSearchController.text.isEmpty
+                        ? GridView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisExtent: 250,
+                                    mainAxisSpacing: 10),
+                            itemCount: catproducts.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return ChangeNotifierProvider.value(
+                                  value: catproducts[index], child: ProWid());
+                            },
+                          )
+                        : productBySearch.isNotEmpty
+                            ? GridView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        mainAxisExtent: 250,
+                                        mainAxisSpacing: 10),
+                                itemCount: productBySearch.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return ChangeNotifierProvider.value(
+                                      value: productBySearch[index],
+                                      child: ProWid());
+                                },
+                              )
+                            : Center(
+                                child: CustomText(
+                                text: "Product not found",
+                              )),
                   ],
                 ),
               ],

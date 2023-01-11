@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Constants/Utils.dart';
 import 'package:grocery_app/Providers/Wishlist_provider.dart';
-import 'package:grocery_app/Widgets/Alertdialoge.dart';
 import 'package:grocery_app/Widgets/customText.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:grocery_app/screens/Wishlist/Wishlist_empty.dart';
 import 'package:grocery_app/screens/Wishlist/Wishlist_full.dart';
 import 'package:provider/provider.dart';
 
 class Wishlist extends StatefulWidget {
-  static final wishid = "wishid";
+  static const wishid = "wishid";
   const Wishlist({Key? key}) : super(key: key);
 
   @override
@@ -18,11 +18,10 @@ class Wishlist extends StatefulWidget {
 }
 
 class _WishlistState extends State<Wishlist> {
- 
   @override
   Widget build(BuildContext context) {
     final wishProvider = Provider.of<Wishlist_provider>(context);
-   final list_of_Wishlist= wishProvider.getWishListitems.values.toList();
+    final listOfWishlist = wishProvider.getWishListitems.values.toList();
     var setsize = Utils(context).getsize();
     return Scaffold(
         appBar: AppBar(
@@ -37,40 +36,50 @@ class _WishlistState extends State<Wishlist> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: CustomText(
-            text: " My Wishlist",
+            text: " My Wishlist".tr(context),
             istitle: true,
           ),
           actions: [
-            list_of_Wishlist.isEmpty
-                ? SizedBox(
+            listOfWishlist.isEmpty
+                ? const SizedBox(
                     width: 1,
                   )
                 : IconButton(
                     color: Colors.black,
-                    icon: Icon(IconlyLight.delete),
+                    icon: const Icon(IconlyLight.delete),
                     onPressed: () {
-                        AwesomeDialog(
+                      AwesomeDialog(
+                        titleTextStyle: TextStyle(
+                            fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+                        descTextStyle: TextStyle(
+                            fontFamily: "Tajawal",
+                            fontWeight: FontWeight.normal),
                         context: context,
                         dialogType: DialogType.warning,
                         animType: AnimType.rightSlide,
-                        title: 'Clear all wish items!',
-                        desc: 'Do you wante to clear all wish items!',
+                        title: 'Clear all wish items!'.tr(context),
+                        desc:
+                            'Do you wante to clear all wish items!'.tr(context),
                         btnCancelOnPress: () {},
-                        btnOkOnPress: () {
-                          wishProvider.clearAllWishs();
-                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            duration: Duration(milliseconds: 600),
-                          content: CustomText(
-                              text: "All wish items cleared successfully",
+                        btnOkOnPress: () async {
+                          await wishProvider.clearAllWishs();
+                          await wishProvider.getWichListFromFS();
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            duration: const Duration(milliseconds: 600),
+                            content: CustomText(
+                              text: "All wish items cleared successfully"
+                                  .tr(context),
                               color: Colors.white,
-                              ),
-                        ));
+                            ),
+                          ));
                         },
-                      )..show();
+                      ).show();
                     },
                   )
           ],
         ),
-        body: list_of_Wishlist.isEmpty ? const Wishlist_empty() : const wishlist_full());
+        body: listOfWishlist.isEmpty
+            ? const Wishlist_empty()
+            : const wishlist_full());
   }
 }

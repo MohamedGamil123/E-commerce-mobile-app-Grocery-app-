@@ -3,14 +3,14 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Constants/Utils.dart';
 import 'package:grocery_app/Providers/Viewed_Provider.dart';
 import 'package:grocery_app/Widgets/Alertdialoge.dart';
-import 'package:grocery_app/Widgets/Cart_widget.dart';
 import 'package:grocery_app/Widgets/customText.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:grocery_app/screens/Viewed/Viewed_empty.dart';
 import 'package:grocery_app/screens/Viewed/Viewed_full.dart';
 import 'package:provider/provider.dart';
 
 class Viewed_Screen extends StatefulWidget {
-  static final viewedid = "viewedid";
+  static const viewedid = "viewedid";
   const Viewed_Screen({Key? key}) : super(key: key);
 
   @override
@@ -38,29 +38,30 @@ class _Viewed_ScreenState extends State<Viewed_Screen> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: CustomText(
-            text: "My History ",
+            text: "My History ".tr(context),
             istitle: true,
           ),
           actions: [
             viewedList.isEmpty
-                ? SizedBox(
+                ? const SizedBox(
                     width: 1,
                   )
                 : IconButton(
                     color: Colors.black,
-                    icon: Icon(IconlyLight.delete),
+                    icon: const Icon(IconlyLight.delete),
                     onPressed: () {
                       customAlertDialoge(
                         context,
-                        title: "Clear History!",
+                        title: "Clear History!".tr(context),
                         content: CustomText(
-                          text: "Your item will be cleared from history!",
+                          text: "Your item will be cleared from history!"
+                              .tr(context),
                         ),
                       );
                     },
                   )
           ],
         ),
-        body: viewedList.isEmpty ? Viewed_empty() : Viewed_full());
+        body: viewedList.isEmpty ? const Viewed_empty() : const Viewed_full());
   }
 }

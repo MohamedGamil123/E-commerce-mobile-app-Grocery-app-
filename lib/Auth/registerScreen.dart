@@ -5,14 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Auth/LoginScreen.dart';
+import 'package:grocery_app/Bottom_Navigation_Screens/fetchPage.dart';
 import 'package:grocery_app/Constants/Fire_consts.dart';
 import 'package:grocery_app/Constants/Swipimages.dart';
 import 'package:grocery_app/Constants/Utils.dart';
 import 'package:grocery_app/Widgets/CustomAuthButton.dart';
 import 'package:grocery_app/Widgets/LoadingWidget.dart';
 import 'package:grocery_app/Widgets/customText.dart';
-
-import '../Bottom_Navigation_Screens/BottomNavigationBar.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 
 class RegistreScreen extends StatefulWidget {
   static const String regid = "regid";
@@ -43,7 +43,6 @@ class _RegistreScreenState extends State<RegistreScreen> {
     super.dispose();
   }
 
-  final User? user = authinstance.currentUser;
   bool isLoading = false;
   void submitFormOnSignup() async {
     if (formstate.currentState!.validate()) {
@@ -53,13 +52,15 @@ class _RegistreScreenState extends State<RegistreScreen> {
         isLoading = true;
       });
       try {
+        User? user = authinstance.currentUser;
         await authinstance.createUserWithEmailAndPassword(
             email: emailController.text.toLowerCase().trim(),
             password: passwordController.text.toLowerCase().trim());
-
+        user!.updateDisplayName(fullNameController.text.toString());
+        user.reload();
         print("register sucsess......");
 
-        print("${authinstance.currentUser!.uid}");
+        print(authinstance.currentUser!.uid);
         await FirebaseFirestore.instance
             .collection("users")
             .doc(authinstance.currentUser!.uid)
@@ -74,14 +75,22 @@ class _RegistreScreenState extends State<RegistreScreen> {
         });
         print("firestor data sucsess......");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: Duration(milliseconds: 2000),
-          content: CustomText(
-            text: "Welcome ${fullNameController.text.toString()} ",
-            color: Colors.white,
+          duration: const Duration(milliseconds: 5000),
+          content: Row(
+            children: [
+              CustomText(
+                text: "Welcome ".tr(context),
+                color: Colors.white,
+              ),
+              CustomText(
+                text: " ${fullNameController.text.toString()} ",
+                color: Colors.orange,
+                iselipsis: true,
+              ),
+            ],
           ),
         ));
-        Navigator.of(context).pushReplacementNamed(
-            UseBottomNavigationBarr_page.bottomnavigation);
+        Navigator.of(context).pushReplacementNamed(fetchPage.fetch);
 
         print("sucsess......");
       } on FirebaseAuthException catch (e) {
@@ -90,41 +99,58 @@ class _RegistreScreenState extends State<RegistreScreen> {
         });
         if (e.code == 'weak-password') {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'weak-password!',
-            desc: 'Please enter strong password',
+            title: 'weak-password!'.tr(context),
+            desc: 'Please enter strong password'.tr(context),
             btnOkOnPress: () {},
-          )..show();
+          ).show();
         } else if (e.code == 'email-already-in-use') {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'email already in use!',
-            desc: 'Please enter another valid email',
+            title: 'email already in use!'.tr(context),
+            desc: 'Please enter another valid email'.tr(context),
             btnOkOnPress: () {},
-          )..show();
+          ).show();
         } else {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'there where an error!',
+            title: 'there where an error!'.tr(context),
             desc: '$e',
             btnOkOnPress: () {},
-          )..show();
+          ).show();
         }
+        print(e);
       } catch (e) {
         AwesomeDialog(
+          titleTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+          descTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
           context: context,
           dialogType: DialogType.error,
           animType: AnimType.rightSlide,
-          title: 'there where an error!',
+          title: 'there where an error!'.tr(context),
           desc: '$e',
           btnOkOnPress: () {},
-        )..show();
+        ).show();
       } finally {
         setState(() {
           isLoading = false;
@@ -141,7 +167,7 @@ class _RegistreScreenState extends State<RegistreScreen> {
       body: LoadingScreen(
         isLoading: isLoading,
         child: SingleChildScrollView(
-          child: Container(
+          child: SizedBox(
             height: setsize.height,
             width: setsize.width,
             child: Stack(children: [
@@ -182,7 +208,7 @@ class _RegistreScreenState extends State<RegistreScreen> {
                         height: 40,
                       ),
                       CustomText(
-                        text: "Welcome ",
+                        text: "Welcome ".tr(context),
                         istitle: true,
                         color: Colors.white,
                         titletextsize: 35,
@@ -191,7 +217,7 @@ class _RegistreScreenState extends State<RegistreScreen> {
                         height: 15,
                       ),
                       CustomText(
-                        text: "Sign up to continue",
+                        text: "Sign up to continue".tr(context),
                         color: Colors.white,
                       ),
                       const SizedBox(
@@ -207,7 +233,7 @@ class _RegistreScreenState extends State<RegistreScreen> {
                             controller: fullNameController,
                             validator: (value) {
                               if (value!.isEmpty || value.length < 5) {
-                                return "Please enter a strong name";
+                                return "Please enter a strong name".tr(context);
                               }
                               return null;
                             },
@@ -225,22 +251,27 @@ class _RegistreScreenState extends State<RegistreScreen> {
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Full name",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Full name".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Full name...",
-                                hintStyle: TextStyle(color: Colors.white)),
+                                hintText: "Full name...".tr(context),
+                                hintStyle:
+                                    const TextStyle(fontFamily: "Tajawal")),
                           ),
                           const SizedBox(
                             height: 15,
                           ),
                           //Email
                           TextFormField(
+                            keyboardType: TextInputType.emailAddress,
                             focusNode: emailFocusNode,
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
@@ -249,7 +280,8 @@ class _RegistreScreenState extends State<RegistreScreen> {
                               if (value!.isEmpty ||
                                   !value.contains("@") ||
                                   !value.contains(".com")) {
-                                return "Please enter a valid email address ";
+                                return "Please enter a valid email address "
+                                    .tr(context);
                               } else {
                                 return null;
                               }
@@ -268,18 +300,21 @@ class _RegistreScreenState extends State<RegistreScreen> {
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Email",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Email".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
                                     borderSide:
                                         const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Email...",
-                                hintStyle:
-                                    const TextStyle(color: Colors.white)),
+                                hintText: "Email...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
                           const SizedBox(
                             height: 15,
@@ -293,8 +328,11 @@ class _RegistreScreenState extends State<RegistreScreen> {
                                 AutovalidateMode.onUserInteraction,
                             controller: passwordController,
                             validator: (value) {
-                              if (value!.isEmpty || value.length < 7) {
-                                return "Please enter a strong password";
+                              if (value!.isEmpty || value.length < 6) {
+                                return "Please enter a strong password"
+                                    .tr(context);
+                              } else if (value.length > 6) {
+                                return "Too long password".tr(context);
                               }
                               return null;
                             },
@@ -326,18 +364,21 @@ class _RegistreScreenState extends State<RegistreScreen> {
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Password",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Password".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
                                     borderSide:
                                         const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Password...",
-                                hintStyle:
-                                    const TextStyle(color: Colors.white)),
+                                hintText: "Password...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
                           const SizedBox(
                             height: 15,
@@ -354,7 +395,8 @@ class _RegistreScreenState extends State<RegistreScreen> {
                             },
                             validator: (value) {
                               if (value!.isEmpty || value.length < 5) {
-                                return "Please enter a strong address";
+                                return "Please enter a strong address"
+                                    .tr(context);
                               }
                               return null;
                             },
@@ -370,18 +412,21 @@ class _RegistreScreenState extends State<RegistreScreen> {
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Shipping address",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Shipping address".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
                                     borderSide:
                                         const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Shipping address...",
-                                hintStyle:
-                                    const TextStyle(color: Colors.white)),
+                                hintText: "Shipping address...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
                         ]),
                       ),
@@ -397,7 +442,7 @@ class _RegistreScreenState extends State<RegistreScreen> {
                         },
                         widget: isLoading
                             ? const Center(child: CircularProgressIndicator())
-                            : CustomText(text: "Sign up"),
+                            : CustomText(text: "Sign up".tr(context)),
                       ),
                       const SizedBox(
                         height: 10,
@@ -405,12 +450,12 @@ class _RegistreScreenState extends State<RegistreScreen> {
                       Row(
                         children: [
                           CustomText(
-                            text: "Already a user?",
+                            text: "Already a user?".tr(context),
                             color: Colors.white,
                           ),
                           TextButton(
                             child: CustomText(
-                              text: "Sign in",
+                              text: "Sign in".tr(context),
                               color: Colors.blue,
                             ),
                             onPressed: () {

@@ -1,5 +1,3 @@
-
-
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +11,8 @@ class CustomGoogleButton extends StatelessWidget {
 
   final User? user = authinstance.currentUser;
   Future signinWithGoogle(context) async {
-    GoogleSignIn _googleSignIn = GoogleSignIn();
-    final googleaccount = await _googleSignIn.signIn();
+    GoogleSignIn googleSignIn = GoogleSignIn();
+    final googleaccount = await googleSignIn.signIn();
     if (googleaccount != null) {
       final googleAuth = await googleaccount.authentication;
       if (googleAuth.idToken != null && googleAuth.accessToken != null) {
@@ -79,7 +77,7 @@ class CustomGoogleButton extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                       color: Colors.white),
                   child: Image.asset("assets/images/google.png")),
-              SizedBox(
+              const SizedBox(
                 width: 10,
               ),
               CustomText(

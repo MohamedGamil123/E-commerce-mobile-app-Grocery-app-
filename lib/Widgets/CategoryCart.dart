@@ -17,13 +17,14 @@ class CustomCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).pushNamed(CategoryProducts.catPro,arguments: title);
+        Navigator.of(context)
+            .pushNamed(CategoryProducts.catPro, arguments: title);
       },
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 15, bottom: 15),
+            margin: const EdgeInsets.only(top: 15, bottom: 15),
             width: double.infinity,
             height: 150,
             child: Card(
@@ -43,7 +44,7 @@ class CustomCard extends StatelessWidget {
                         istitle: true,
                         titletextsize: 20,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 15,
                       )
                     ]),
@@ -51,7 +52,7 @@ class CustomCard extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: 40,
+            left: 40,
             top: -30,
             child: Image.asset(
               image,

@@ -1,4 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
@@ -10,7 +11,7 @@ import 'package:grocery_app/Providers/Viewed_Provider.dart';
 import 'package:grocery_app/Providers/Wishlist_provider.dart';
 import 'package:grocery_app/Widgets/customText.dart';
 import 'package:grocery_app/Inner_Screens/Product_details.dart';
-import 'package:jiffy/jiffy.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:provider/provider.dart';
 import '../Constants/Fire_consts.dart';
 
@@ -20,7 +21,7 @@ class OnSaleCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productmodel = Provider.of<ProductModel>(context);
-    double currentPrice =
+    String currentPrice =
         productmodel.isOnSale ? productmodel.salePrice : productmodel.price;
     var setsize = Utils(context).getsize();
     final cartProvider = Provider.of<CartProvider>(context);
@@ -32,8 +33,7 @@ class OnSaleCart extends StatelessWidget {
     return InkWell(
       onTap: () {
         viewedProvider.addViewedItem(
-            proid: productmodel.id,
-            time: Jiffy().format("MMMM do yyyy, h:mm: a").toString());
+            proid: productmodel.id, time: DateTime.now().toString());
         Navigator.of(context).pushNamed(Product_details.produtdetails,
             arguments: productmodel.id);
       },
@@ -68,7 +68,9 @@ class OnSaleCart extends StatelessWidget {
                             width: 5,
                           ),
                           CustomText(
-                            text: productmodel.isPiece ? "Peice" : "Kg",
+                            text: productmodel.isPiece
+                                ? "Peice".tr(context)
+                                : "Kg".tr(context),
                             color: Colors.grey.shade700,
                           ),
                         ],
@@ -89,7 +91,13 @@ class OnSaleCart extends StatelessWidget {
                           Container(
                             child: Row(children: [
                               CustomText(
-                                text: r"$" "${currentPrice.toStringAsFixed(2)}",
+                                text: currentPrice,
+                                color: Colors.green.shade500,
+                                istitle: true,
+                                titletextsize: 18,
+                              ),
+                              CustomText(
+                                text: r"$".tr(context),
                                 color: Colors.green.shade500,
                                 istitle: true,
                                 titletextsize: 18,
@@ -98,10 +106,15 @@ class OnSaleCart extends StatelessWidget {
                                 width: 10,
                               ),
                               CustomText(
-                                text: r"$" "${productmodel.price.toString()}",
+                                text: productmodel.price,
                                 lineThrough: true,
                                 color: Colors.grey.shade700,
-                              )
+                              ),
+                              CustomText(
+                                text: r"$".tr(context),
+                                lineThrough: true,
+                                color: Colors.grey.shade700,
+                              ),
                             ]),
                           ),
                           Container(
@@ -111,11 +124,11 @@ class OnSaleCart extends StatelessWidget {
                                   isIncart ? IconlyBold.bag2 : IconlyLight.buy,
                                   color: Colors.grey.shade700,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   if (user != null) {
                                     if (isIncart == true) {
                                       Fluttertoast.showToast(
-                                        msg: "Already in cart",
+                                        msg: "Already in cart".tr(context),
                                         toastLength: Toast.LENGTH_SHORT,
                                         gravity: ToastGravity.BOTTOM,
                                         timeInSecForIosWeb: 1,
@@ -125,29 +138,36 @@ class OnSaleCart extends StatelessWidget {
                                         fontSize: 17.0,
                                       );
                                     } else {
-                                      cartProvider.addProducttoCart(
+                                      await cartProvider.addProducttoCart_FS(
                                           productId: productmodel.id,
                                           quantity: 1);
+                                      await cartProvider.getCartFromFS();
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
-                                        duration:
-                                            const Duration(milliseconds: 600),
+                                        duration: const Duration(seconds: 1),
                                         content: CustomText(
-                                          text: "Added to cart Successfully",
+                                          text: "Added to cart Successfully"
+                                              .tr(context),
                                           color: Colors.white,
                                         ),
                                       ));
                                     }
                                   } else {
                                     AwesomeDialog(
+                                      titleTextStyle: TextStyle(
+                                          fontFamily: "Tajawal",
+                                          fontWeight: FontWeight.bold),
+                                      descTextStyle: TextStyle(
+                                          fontFamily: "Tajawal",
+                                          fontWeight: FontWeight.normal),
                                       context: context,
                                       dialogType: DialogType.warning,
                                       animType: AnimType.rightSlide,
-                                      title: "User not found ",
-                                      desc:
-                                          "No user found, please login first!",
+                                      title: "User not found ".tr(context),
+                                      desc: "No user found, please login first!"
+                                          .tr(context),
                                       btnOkOnPress: () {},
-                                    )..show();
+                                    ).show();
                                   }
                                 },
                               ),
@@ -158,42 +178,48 @@ class OnSaleCart extends StatelessWidget {
                                       : IconlyLight.heart,
                                   color: Colors.red,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   if (user != null) {
                                     if (isinWishlist == true) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
-                                        duration:
-                                            const Duration(milliseconds: 600),
+                                        duration: const Duration(seconds: 1),
                                         content: CustomText(
-                                          text: "Already in wishlist",
+                                          text:
+                                              "Already in wishlist".tr(context),
                                           color: Colors.white,
                                         ),
                                       ));
                                     } else {
-                                      wishProvider.add_Item_to_WishList(
+                                      await wishProvider.add__WishList_FS(
                                           productID: productmodel.id);
+                                      await wishProvider.getWichListFromFS();
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
-                                        duration:
-                                            const Duration(milliseconds: 600),
+                                        duration: const Duration(seconds: 1),
                                         content: CustomText(
-                                          text:
-                                              "Added to wishlist Successfully",
+                                          text: "Added to wishlist Successfully"
+                                              .tr(context),
                                           color: Colors.white,
                                         ),
                                       ));
                                     }
                                   } else {
                                     AwesomeDialog(
+                                      titleTextStyle: TextStyle(
+                                          fontFamily: "Tajawal",
+                                          fontWeight: FontWeight.bold),
+                                      descTextStyle: TextStyle(
+                                          fontFamily: "Tajawal",
+                                          fontWeight: FontWeight.normal),
                                       context: context,
                                       dialogType: DialogType.warning,
                                       animType: AnimType.rightSlide,
-                                      title: "User not found ",
-                                      desc:
-                                          "No user found, please login first!",
+                                      title: "User not found ".tr(context),
+                                      desc: "No user found, please login first!"
+                                          .tr(context),
                                       btnOkOnPress: () {},
-                                    )..show();
+                                    ).show();
                                   }
                                 },
                               )
@@ -206,16 +232,18 @@ class OnSaleCart extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: setsize.width * 0,
+            left: setsize.width * 0.01,
             top: setsize.height * -0.001,
-            child: FittedBox(
-                fit: BoxFit.fill,
-                child: Image.network(
-                  filterQuality: FilterQuality.low,
-                  productmodel.imageUrl,
-                  height: setsize.height * 0.153,
-                  width: setsize.width * 0.53,
-                )),
+            child: Hero(
+              tag: productmodel.id + "1",
+              child: CachedNetworkImage(
+                imageUrl: productmodel.imageUrl,
+                filterQuality: FilterQuality.low,
+                key: UniqueKey(),
+                height: setsize.height * 0.153,
+                width: setsize.width * 0.35,
+              ),
+            ),
           )
         ],
       ),

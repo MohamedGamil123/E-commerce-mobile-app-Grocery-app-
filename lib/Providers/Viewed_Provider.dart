@@ -6,11 +6,13 @@ class ViewdProvider extends ChangeNotifier {
     return _viewedItems;
   }
 
-  Map<String, ViewedModel> _viewedItems = {};
+  final Map<String, ViewedModel> _viewedItems = {};
 
-  void addViewedItem({required String proid,required String time}) {
-    _viewedItems.putIfAbsent(proid,
-        () => ViewedModel(id: DateTime.now().toString(), productId: proid, time: time));
+  void addViewedItem({required String proid, required String time}) {
+    _viewedItems.putIfAbsent(
+        proid,
+        () => ViewedModel(
+            id: DateTime.now().toString(), productId: proid, time: time));
     notifyListeners();
   }
 }

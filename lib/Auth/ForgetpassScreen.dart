@@ -9,6 +9,7 @@ import 'package:grocery_app/Constants/Utils.dart';
 import 'package:grocery_app/Widgets/CustomAuthButton.dart';
 import 'package:grocery_app/Widgets/LoadingWidget.dart';
 import 'package:grocery_app/Widgets/customText.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 
 class ForgetPassScreen extends StatefulWidget {
   static const String forgetid = "forgetid";
@@ -24,75 +25,91 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
   bool isLoading = false;
   @override
   void dispose() {
-   _emailController.dispose();
+    _emailController.dispose();
 
     super.dispose();
   }
 
-
-  
   void resetPassword() async {
-
     if (_emailController.text.isEmpty ||
         !_emailController.text.contains("@") ||
         !_emailController.text.contains(".com")) {
       AwesomeDialog(
+        titleTextStyle:
+            TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+        descTextStyle:
+            TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
         context: context,
         dialogType: DialogType.error,
         animType: AnimType.rightSlide,
-        title: 'Uncorrect email!',
-        desc: 'Uncorrect email!!',
+        title: 'Uncorrect email!'.tr(context),
+        desc: 'Please enter a valid email address '.tr(context),
         btnOkOnPress: () {},
       ).show();
     } else {
-       setState(() {
-          isLoading = true;
-        });
+      setState(() {
+        isLoading = true;
+      });
       try {
-       
         await authinstance.sendPasswordResetEmail(
             email: _emailController.text.toLowerCase());
-               AwesomeDialog(
-            context: context,
-            dialogType: DialogType.error,
-            animType: AnimType.rightSlide,
-            title: 'Email sent',
-            desc: 'An email has been sent to your email',
-            btnOkOnPress: () {},
-          ).show();
+        AwesomeDialog(
+          titleTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+          descTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
+          context: context,
+          dialogType: DialogType.infoReverse,
+          animType: AnimType.rightSlide,
+          title: 'Email sent'.tr(context),
+          desc: 'A link has been sent to your email'.tr(context),
+          btnOkOnPress: () {},
+        ).show();
         print("email sent");
       } on FirebaseException catch (e) {
         setState(() {
           isLoading = false;
         });
-        if (e.code == 'user-not-found') {
+        if (e.code == 'user-not-found'.tr(context)) {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'user not found!',
-            desc: 'No user found for that email!',
+            title: 'user not found!'.tr(context),
+            desc: 'No user found for that email!'.tr(context),
             btnOkOnPress: () {},
           ).show();
         } else {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'there where an error!',
+            title: 'there where an error!'.tr(context),
             desc: '$e',
             btnOkOnPress: () {},
           ).show();
         }
       } catch (e) {
-          setState(() {
+        setState(() {
           isLoading = false;
         });
         AwesomeDialog(
+          titleTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+          descTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
           context: context,
           dialogType: DialogType.error,
           animType: AnimType.rightSlide,
-          title: 'there where an error!',
+          title: 'there where an error!'.tr(context),
           desc: '$e',
           btnOkOnPress: () {},
         ).show();
@@ -153,7 +170,7 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
                         height: 40,
                       ),
                       CustomText(
-                        text: "Forget password",
+                        text: "Forget password".tr(context),
                         istitle: true,
                         color: Colors.white,
                         titletextsize: 35,
@@ -173,23 +190,29 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                                 enabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15)),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Email",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Email".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Email...",
-                                hintStyle: const TextStyle(color: Colors.white)),
+                                hintText: "Email...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
 
                           //password Form
@@ -199,10 +222,10 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
                         height: 20,
                       ),
                       CustomAuthButton(
-                        ontap: ()async {
+                        ontap: () async {
                           resetPassword();
                         },
-                        widget: CustomText(text: "Reset now"),
+                        widget: CustomText(text: "Reset now".tr(context)),
                       ),
                       const Spacer(flex: 3),
                     ]),

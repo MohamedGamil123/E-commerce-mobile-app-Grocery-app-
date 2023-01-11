@@ -1,21 +1,21 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Constants/Utils.dart';
-import 'package:grocery_app/Models/Product_Model.dart';
 import 'package:grocery_app/Models/Wishlist_model.dart';
 import 'package:grocery_app/Providers/Cart_Provider.dart';
 import 'package:grocery_app/Providers/Product_Provider.dart';
 import 'package:grocery_app/Providers/Viewed_Provider.dart';
 import 'package:grocery_app/Providers/Wishlist_provider.dart';
-import 'package:grocery_app/Widgets/Alertdialoge.dart';
 import 'package:grocery_app/Widgets/customText.dart';
 import 'package:grocery_app/Inner_Screens/Product_details.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 
 class Wishlist_Widget extends StatelessWidget {
-  Wishlist_Widget();
+  const Wishlist_Widget();
 
   @override
   Widget build(BuildContext context) {
@@ -26,19 +26,21 @@ class Wishlist_Widget extends StatelessWidget {
     final productById = productprovider.getproductById(wishModel.productId);
     final cartProvider = Provider.of<CartProvider>(context);
     bool? isIncart = cartProvider.getcartItems.containsKey(productById.id);
-     final wishProvider = Provider.of<Wishlist_provider>(context);
+    final wishProvider = Provider.of<Wishlist_provider>(context);
     var setsize = Utils(context).getsize();
-    double currentPrice =
+    String currentPrice =
         productById.isOnSale ? productById.salePrice : productById.price;
-         final viewedProvider = Provider.of<ViewdProvider>(context);
+    final viewedProvider = Provider.of<ViewdProvider>(context);
     return InkWell(
       onTap: () {
-          if (viewedProvider.getviewedItems.containsKey(productById.id)) {
-         null;
-        }else{
- viewedProvider.addViewedItem(proid: productById.id,time:Jiffy().format("MMMM do yyyy, h:mm: a").toString());
+        if (viewedProvider.getviewedItems.containsKey(productById.id)) {
+          null;
+        } else {
+          viewedProvider.addViewedItem(
+              proid: productById.id, time: DateTime.now().toString());
         }
-         Navigator.of(context).pushNamed(Product_details.produtdetails,arguments: productById.id);
+        Navigator.of(context).pushNamed(Product_details.produtdetails,
+            arguments: productById.id);
       },
       child: Container(
         padding: const EdgeInsets.only(top: 15),
@@ -66,24 +68,37 @@ class Wishlist_Widget extends StatelessWidget {
                           color: Colors.black,
                           icon: const Icon(IconlyLight.delete),
                           onPressed: () {
-                              AwesomeDialog(
-                        context: context,
-                        dialogType: DialogType.warning,
-                        animType: AnimType.rightSlide,
-                        title: 'Clear wish item!',
-                        desc: 'Do you wante to clear wish item!',
-                        btnCancelOnPress: () {},
-                        btnOkOnPress: () {
-                          wishProvider.removeOneWishItem(productID: productById.id);
-                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            duration: Duration(milliseconds: 600),
-                          content: CustomText(
-                              text: " Wish item cleared successfully",
-                              color: Colors.white,
-                              ),
-                        ));
-                        },
-                      )..show();
+                            AwesomeDialog(
+                              titleTextStyle: TextStyle(
+                                  fontFamily: "Tajawal",
+                                  fontWeight: FontWeight.bold),
+                              descTextStyle: TextStyle(
+                                  fontFamily: "Tajawal",
+                                  fontWeight: FontWeight.normal),
+                              context: context,
+                              dialogType: DialogType.warning,
+                              animType: AnimType.rightSlide,
+                              title: 'Clear wish item!'.tr(context),
+                              desc: 'Do you wante to clear wish item!'
+                                  .tr(context),
+                              btnCancelOnPress: () {},
+                              btnOkOnPress: () async {
+                                await wishProvider.removeOneWishItem(
+                                    wishId: wishModel.wishId,
+                                    productID: productById.id,
+                                    createdAt: wishModel.craetedAt);
+                                await wishProvider.getWichListFromFS();
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  duration: const Duration(seconds: 1),
+                                  content: CustomText(
+                                    text: " Wish item cleared successfully"
+                                        .tr(context),
+                                    color: Colors.white,
+                                  ),
+                                ));
+                              },
+                            ).show();
                           },
                         ),
                         Row(
@@ -98,53 +113,77 @@ class Wishlist_Widget extends StatelessWidget {
                                 color: Colors.grey.shade800,
                               ),
                             ),
-                            Flexible(
-                             
-                              child: SizedBox()),
+                            const Flexible(child: SizedBox()),
                           ],
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
-                              child:  Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                child: Row(children: [
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        child: Row(children: [
+                                          CustomText(
+                                            text: "$currentPrice",
+                                            color: Colors.green.shade500,
+                                            istitle: true,
+                                            titletextsize: 18,
+                                          ),
+                                          CustomText(
+                                            text: r"$".tr(context),
+                                            color: Colors.green.shade500,
+                                            istitle: true,
+                                            titletextsize: 18,
+                                          ),
+                                          const SizedBox(
+                                            width: 15,
+                                          ),
+                                          Visibility(
+                                            visible: productById.isOnSale
+                                                ? true
+                                                : false,
+                                            child: Row(
+                                              children: [
+                                                CustomText(
+                                                  text: "${productById.price}",
+                                                  lineThrough: true,
+                                                  color: Colors.grey.shade700,
+                                                  titletextsize: 24,
+                                                ),
+                                                CustomText(
+                                                  text: r"$".tr(context),
+                                                  lineThrough: true,
+                                                  color: Colors.grey.shade700,
+                                                  titletextsize: 24,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          CustomText(
+                                            text: " /",
+                                            color: Colors.grey.shade700,
+                                          ),
+                                          CustomText(
+                                            text: productById.isPiece
+                                                ? "Peice".tr(context)
+                                                : "Kg".tr(context),
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ]),
+                                      ),
+                                    ],
+                                  ),
                                   CustomText(
-                                    text: r"$"
-                                        "${currentPrice.toStringAsFixed(2)}",
-                                    color: Colors.green.shade500,
-                                    titletextsize: 24,
-                                  ),
-                                  SizedBox(
-                                    width: 15,
-                                  ),
-                                  Visibility(
-                                    visible:
-                                        productById.isOnSale ? true : false,
-                                    child: CustomText(
-                                      text: r"$"
-                                          "${productById.price.toStringAsFixed(2)}",
-                                      lineThrough: true,
-                                      color: Colors.grey.shade700,
-                                      titletextsize: 24,
-                                    ),
-                                  ),
-                                  CustomText(
-                                    text: " /",
-                                    color: Colors.grey.shade700,
-                                  ),
-                                  CustomText(
-                                    text: productById.isPiece ? "Peice" : "Kg",
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ]),
+                                    text: Jiffy(wishModel.craetedAt).fromNow(),
+                                  )
+                                ],
                               ),
-                              
-                            ],
-                          ),
                             ),
                             Container(
                               child: Row(children: [
@@ -155,25 +194,27 @@ class Wishlist_Widget extends StatelessWidget {
                                         : IconlyLight.buy,
                                     color: Colors.grey.shade700,
                                   ),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (isIncart == true) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
-                                        duration: Duration(milliseconds: 600),
+                                        duration: const Duration(seconds: 1),
                                         content: CustomText(
-                                          text: "Already in cart",
+                                          text: "Already in cart".tr(context),
                                           color: Colors.white,
                                         ),
                                       ));
                                     } else {
-                                      cartProvider.addProducttoCart(
+                                      await cartProvider.addProducttoCart_FS(
                                           productId: productById.id,
                                           quantity: 1);
+                                      await cartProvider.getCartFromFS();
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
-                                        duration: Duration(milliseconds: 600),
+                                        duration: const Duration(seconds: 1),
                                         content: CustomText(
-                                          text: "Added to cart Successfully",
+                                          text: "Added to cart Successfully"
+                                              .tr(context),
                                           color: Colors.white,
                                         ),
                                       ));
@@ -189,12 +230,16 @@ class Wishlist_Widget extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: setsize.width * 0,
+              left: setsize.width * 0,
               top: setsize.height * -0.017,
-              child: Image.network(
-                productById.imageUrl,
-                height: setsize.height * 0.153,
-                width: setsize.width * 0.53,
+              child: Hero(
+                tag: productById.id,
+                child: CachedNetworkImage(
+                  imageUrl: productById.imageUrl,
+                  key: UniqueKey(),
+                  height: setsize.height * 0.153,
+                  width: setsize.width * 0.53,
+                ),
               ),
             )
           ],

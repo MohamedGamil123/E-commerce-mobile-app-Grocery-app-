@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class WishlistModel extends ChangeNotifier {
-  String id, productId;
+  String wishId, productId, craetedAt;
   WishlistModel({
-    required this.id,
+    required this.wishId,
     required this.productId,
+    required this.craetedAt,
   });
 }

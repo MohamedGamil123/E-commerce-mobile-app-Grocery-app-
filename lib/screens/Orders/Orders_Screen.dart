@@ -1,19 +1,16 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Constants/Utils.dart';
-import 'package:grocery_app/Widgets/Alertdialoge.dart';
-import 'package:grocery_app/Widgets/Cart_widget.dart';
-import 'package:grocery_app/Widgets/Onsale_cart.dart';
-import 'package:grocery_app/Widgets/Wishlist_Widget.dart';
+import 'package:grocery_app/Providers/OrdersProvider.dart';
 import 'package:grocery_app/Widgets/customText.dart';
-import 'package:grocery_app/Widgets/order_widget.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:grocery_app/screens/Orders/Orders_empty.dart';
 import 'package:grocery_app/screens/Orders/Orders_full.dart';
-import 'package:grocery_app/screens/Wishlist/Wishlist_empty.dart';
-import 'package:grocery_app/screens/Wishlist/Wishlist_full.dart';
+import 'package:provider/provider.dart';
 
 class Orders_Screen extends StatefulWidget {
-  static final orderid = "orderid";
+  static const orderid = "orderid";
   const Orders_Screen({Key? key}) : super(key: key);
 
   @override
@@ -21,10 +18,12 @@ class Orders_Screen extends StatefulWidget {
 }
 
 class _Orders_ScreenState extends State<Orders_Screen> {
-  bool Orders_Screen_empty = false;
   @override
   Widget build(BuildContext context) {
+    final orderProvider = Provider.of<OrdersProvider>(context);
+    final ordersList = orderProvider.getOrdersList;
     var setsize = Utils(context).getsize();
+
     return Scaffold(
         appBar: AppBar(
           leading: InkWell(
@@ -37,38 +36,50 @@ class _Orders_ScreenState extends State<Orders_Screen> {
               )),
           backgroundColor: Colors.white,
           elevation: 0,
-          title: CustomText(
-            text: "My Orders ",
-            istitle: true,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              CustomText(
+                text: "My Orders".tr(context),
+                istitle: true,
+              ),
+              CustomText(
+                text: "(${ordersList.length}) ",
+                istitle: true,
+              ),
+            ],
           ),
           actions: [
-            Orders_Screen_empty
-                ? SizedBox(
-                    width: 1,
-                  )
-                : IconButton(
-                    color: Colors.black,
-                    icon: Icon(IconlyLight.delete),
-                    onPressed: () {
-                      customAlertDialoge(context,
-                          content: CustomText(text: "Do you want to clear all orders!"),
-                          title: "Clear all orders history!",
-                         actions: [
-                        TextButton(
-                          child: Text("Cancel"),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text("Ok"),
-                          onPressed: () {},
-                        )
-                      ]);
-                    },
-                  )
+            IconButton(
+              color: Colors.black,
+              icon: const Icon(IconlyLight.delete),
+              onPressed: () {
+                AwesomeDialog(
+                  titleTextStyle: TextStyle(
+                      fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+                  descTextStyle: TextStyle(
+                      fontFamily: "Tajawal", fontWeight: FontWeight.normal),
+                  context: context,
+                  dialogType: DialogType.warning,
+                  animType: AnimType.rightSlide,
+                  title: 'Clear all orders!'.tr(context),
+                  desc: 'Do you wante to clear all orders!'.tr(context),
+                  btnCancelOnPress: () {},
+                  btnOkOnPress: () async {
+                    await orderProvider.clearAllOrder();
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      duration: const Duration(milliseconds: 1000),
+                      content: CustomText(
+                        text: "All orders cleared successfully".tr(context),
+                        color: Colors.white,
+                      ),
+                    ));
+                  },
+                ).show();
+              },
+            )
           ],
         ),
-        body: Orders_Screen_empty ? Order_empty() : Order_full());
+        body: ordersList.isEmpty ? const Order_empty() : const Order_full());
   }
 }

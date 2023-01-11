@@ -1,18 +1,19 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:grocery_app/Auth/ForgetpassScreen.dart';
 import 'package:grocery_app/Auth/registerScreen.dart';
-import 'package:grocery_app/Bottom_Navigation_Screens/BottomNavigationBar.dart';
+import 'package:grocery_app/Bottom_Navigation_Screens/fetchPage.dart';
 import 'package:grocery_app/Constants/Fire_consts.dart';
 import 'package:grocery_app/Constants/Swipimages.dart';
 import 'package:grocery_app/Constants/Utils.dart';
 import 'package:grocery_app/Widgets/CustomAuthButton.dart';
 import 'package:grocery_app/Widgets/LoadingWidget.dart';
-import 'package:grocery_app/Widgets/customGoogleButton.dart';
 import 'package:grocery_app/Widgets/customText.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String logid = "loid";
@@ -48,14 +49,26 @@ class _LoginScreenState extends State<LoginScreen> {
         await authinstance.signInWithEmailAndPassword(
             email: emailController.text.toLowerCase().trim(),
             password: passwordController.text.toLowerCase().trim());
-        
-           Navigator.of(context).pushReplacementNamed(
-              UseBottomNavigationBarr_page.bottomnavigation);
+        final User? user = authinstance.currentUser;
+        String uid = user!.uid;
+        DocumentSnapshot userdoc =
+            await FirebaseFirestore.instance.collection("users").doc(uid).get();
+        String name = userdoc.get("name");
+        Navigator.of(context).pushReplacementNamed(fetchPage.fetch);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: Duration(milliseconds: 2000),
-          content: CustomText(
-            text: "Welcome ${""} ",
-            color: Colors.white,
+          duration: const Duration(milliseconds: 5000),
+          content: Row(
+            children: [
+              CustomText(
+                text: "Welcome back".tr(context),
+                color: Colors.white,
+              ),
+              CustomText(
+                text: name,
+                color: Colors.orange,
+                iselipsis: true,
+              ),
+            ],
           ),
         ));
         print("login success");
@@ -65,38 +78,54 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         if (e.code == 'user-not-found') {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'user not found!',
-            desc: 'No user found for that email!',
+            title: 'user not found!'.tr(context),
+            desc: 'No user found for that email!'.tr(context),
             btnOkOnPress: () {},
           ).show();
         } else if (e.code == 'wrong-password') {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'wrong password!',
-            desc: 'Wrong password provided for that user!',
+            title: 'wrong password!'.tr(context),
+            desc: 'Wrong password provided for that user!'.tr(context),
             btnOkOnPress: () {},
           ).show();
         } else {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'there where an error!',
+            title: 'there where an error!'.tr(context),
             desc: '$e',
             btnOkOnPress: () {},
           ).show();
         }
       } catch (e) {
         AwesomeDialog(
+          titleTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+          descTextStyle:
+              TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
           context: context,
           dialogType: DialogType.error,
           animType: AnimType.rightSlide,
-          title: 'there where an error!',
+          title: 'there where an error!'.tr(context),
           desc: '$e',
           btnOkOnPress: () {},
         ).show();
@@ -108,22 +137,37 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future signinWithGoogle(context) async {
+  Future signinWithGoogle(BuildContext context) async {
     setState(() {
       isLoading = true;
     });
-    GoogleSignIn _googleSignIn = GoogleSignIn();
-    final googleaccount = await _googleSignIn.signIn();
+    GoogleSignIn googleSignIn = GoogleSignIn();
+    final googleaccount = await googleSignIn.signIn();
     if (googleaccount != null) {
       final googleAuth = await googleaccount.authentication;
       if (googleAuth.idToken != null && googleAuth.accessToken != null) {
         try {
-          await authinstance.signInWithCredential(GoogleAuthProvider.credential(
-              idToken: googleAuth.idToken,
-              accessToken: googleAuth.accessToken));
+          final authresult = await authinstance.signInWithCredential(
+              GoogleAuthProvider.credential(
+                  idToken: googleAuth.idToken,
+                  accessToken: googleAuth.accessToken));
           if (user != null) {
-            Navigator.of(context).pushReplacementNamed(
-                UseBottomNavigationBarr_page.bottomnavigation);
+            if (authresult.additionalUserInfo!.isNewUser) {
+              await FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(authresult.user!.uid)
+                  .set({
+                "email": authresult.user!.email,
+                "uid": authresult.user!.uid,
+                "name": authresult.user!.displayName,
+                "shipping_address": "",
+                "userWish": [],
+                "userCart": [],
+                "createdAt": Timestamp.now()
+              });
+            }
+
+            Navigator.of(context).pushReplacementNamed(fetchPage.fetch);
           }
         } on FirebaseAuthException catch (e) {
           setState(() {
@@ -131,11 +175,15 @@ class _LoginScreenState extends State<LoginScreen> {
           });
           if (e.code == 'user-not-found') {
             AwesomeDialog(
+              titleTextStyle:
+                  TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+              descTextStyle: TextStyle(
+                  fontFamily: "Tajawal", fontWeight: FontWeight.normal),
               context: context,
               dialogType: DialogType.error,
               animType: AnimType.rightSlide,
-              title: 'user not found!',
-              desc: 'No user found for that email!',
+              title: 'user not found!'.tr(context),
+              desc: 'No user found for that email!'.tr(context),
               btnOkOnPress: () {},
             ).show();
           } else {
@@ -143,17 +191,21 @@ class _LoginScreenState extends State<LoginScreen> {
               context: context,
               dialogType: DialogType.error,
               animType: AnimType.rightSlide,
-              title: 'there where an error!',
+              title: 'there where an error!'.tr(context),
               desc: '$e',
               btnOkOnPress: () {},
             ).show();
           }
         } catch (e) {
           AwesomeDialog(
+            titleTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.bold),
+            descTextStyle:
+                TextStyle(fontFamily: "Tajawal", fontWeight: FontWeight.normal),
             context: context,
             dialogType: DialogType.error,
             animType: AnimType.rightSlide,
-            title: 'there where an error!',
+            title: 'there where an error!'.tr(context),
             desc: '$e',
             btnOkOnPress: () {},
           ).show();
@@ -204,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const Spacer(flex: 1),
                       CustomText(
-                        text: "Welcome Back",
+                        text: "Welcome back".tr(context),
                         istitle: true,
                         color: Colors.white,
                         titletextsize: 35,
@@ -213,8 +265,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 15,
                       ),
                       CustomText(
-                        text: "Sign in to continue",
+                        text: "Sign in to continue".tr(context),
                         color: Colors.white,
+                        istitle: true,
+                        titletextsize: 15,
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      CustomText(
+                        text:
+                            "Save data and receive gifts for fast delivery experience"
+                                .tr(context),
+                        color: Colors.white,
+                        textsize: 13,
                       ),
                       const SizedBox(
                         height: 60,
@@ -234,7 +298,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value!.isEmpty ||
                                   !value.contains("@") ||
                                   !value.contains(".com")) {
-                                return "Please enter a valid email address ";
+                                return "Please enter a valid email address "
+                                    .tr(context);
                               } else {
                                 return null;
                               }
@@ -243,23 +308,29 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                                 enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15)),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Email",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Email".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Email...",
-                                hintStyle: TextStyle(color: Colors.white)),
+                                hintText: "Email...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
                           const SizedBox(
                             height: 15,
@@ -273,16 +344,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                 AutovalidateMode.onUserInteraction,
                             controller: passwordController,
                             validator: (value) {
-                              if (value!.isEmpty || value.length < 7) {
-                                return "Please enter a strong password";
+                              if (value!.isEmpty) {
+                                return "Please enter a strong password"
+                                    .tr(context);
                               }
+                              return null;
                             },
                             textInputAction: TextInputAction.done,
                             onEditingComplete: () {
                               FocusScope.of(context).unfocus();
                               submitFormOnLogin();
                             },
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                                 suffixIcon: InkWell(
                                     onTap: () {
@@ -297,25 +370,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: Colors.white,
                                     )),
                                 enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide:
+                                        const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15)),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.green.shade600),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                label: const Text(
-                                  "Password",
-                                  style: TextStyle(color: Colors.white),
+                                label: Text(
+                                  "Password".tr(context),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Tajawal"),
                                 ),
                                 border: OutlineInputBorder(
                                     borderSide:
                                         const BorderSide(color: Colors.white),
                                     borderRadius: BorderRadius.circular(15),
                                     gapPadding: 15),
-                                hintText: "Password...",
-                                hintStyle:
-                                    const TextStyle(color: Colors.white)),
+                                hintText: "Password...".tr(context),
+                                hintStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Tajawal")),
                           ),
                         ]),
                       ),
@@ -331,7 +408,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     .pushNamed(ForgetPassScreen.forgetid);
                               },
                               child: CustomText(
-                                text: "Forget password?",
+                                text: "Forget password?".tr(context),
                                 color: Colors.blue,
                               )),
                         ],
@@ -347,7 +424,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? const Center(
                                 child: CircularProgressIndicator.adaptive(),
                               )
-                            : CustomText(text: "Sign in"),
+                            : CustomText(text: "Sign in".tr(context)),
                       ),
                       const SizedBox(
                         height: 15,
@@ -375,7 +452,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   width: 10,
                                 ),
                                 CustomText(
-                                  text: "Sign in with Google",
+                                  text: "Sign in with Google".tr(context),
                                   color: Colors.white,
                                 )
                               ],
@@ -395,7 +472,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 5,
                           ),
                           CustomText(
-                            text: "OR",
+                            text: "OR".tr(context),
                             istitle: true,
                             color: Colors.white,
                           ),
@@ -417,20 +494,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (authinstance.currentUser != null) {
                             authinstance.signOut();
                           }
-                          Navigator.of(context).pushReplacementNamed(
-                              UseBottomNavigationBarr_page.bottomnavigation);
+                          Navigator.of(context)
+                              .pushReplacementNamed(fetchPage.fetch);
                         },
-                        widget: CustomText(text: "Continue as a guest"),
+                        widget:
+                            CustomText(text: "Continue as a guest".tr(context)),
                       ),
                       Row(
                         children: [
                           CustomText(
-                            text: "Don't have an account?",
+                            text: "Don't have an account?".tr(context),
                             color: Colors.white,
                           ),
                           TextButton(
                             child: CustomText(
-                              text: "Sign up",
+                              text: "Sign up".tr(context),
                               color: Colors.blue,
                             ),
                             onPressed: () {

@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -9,5 +8,3 @@ class Utils {
     return MediaQuery.of(context).size;
   }
 }
-
-

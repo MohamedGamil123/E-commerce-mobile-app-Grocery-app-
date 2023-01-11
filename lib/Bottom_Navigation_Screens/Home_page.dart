@@ -10,6 +10,7 @@ import 'package:grocery_app/Providers/Product_Provider.dart';
 import 'package:grocery_app/Widgets/customText.dart';
 import 'package:grocery_app/Widgets/Onsale_cart.dart';
 import 'package:grocery_app/Widgets/proWid.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:provider/provider.dart';
 
 class Homepage extends StatefulWidget {
@@ -45,19 +46,19 @@ class _HomepageState extends State<Homepage> {
                 height: 5,
               ),
               Container(
-                padding: const EdgeInsets.only(left: 15),
+                padding: const EdgeInsets.only(left: 15, right: 15),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        text: "My Grocery ",
+                        text: "My Grocery ".tr(context),
                         istitle: true,
                         color: Colors.green.shade800,
-                        titletextsize: 26,
+                        titletextsize: 33,
                       ),
                       CustomText(
-                        text: "Premium Quality Products ",
-                        textsize: 12,
+                        text: "Premium Quality Products ".tr(context),
+                        textsize: 13,
                         color: Colors.grey.shade800,
                       ),
                     ]),
@@ -105,9 +106,10 @@ class _HomepageState extends State<Homepage> {
                   children: [
                     Row(children: [
                       CustomText(
-                        text: "ON SALE",
+                        text: "ON SALE".tr(context),
                         istitle: true,
                         color: Colors.orange.shade800,
+                        titletextsize: 20,
                       ),
                       const SizedBox(
                         width: 10,
@@ -119,11 +121,11 @@ class _HomepageState extends State<Homepage> {
                     ]),
                     InkWell(
                       onTap: () {
-                        Navigator.of(context)
-                            .pushNamed(Onsale_Screen.onsalSc);
+                        Navigator.of(context).pushNamed(Onsale_Screen.onsalSc);
                       },
                       child: CustomText(
-                        text: "See all ...",
+                        textsize: 15,
+                        text: "See all ...".tr(context),
                       ),
                     ),
                   ],
@@ -133,10 +135,11 @@ class _HomepageState extends State<Homepage> {
                 height: setsize.height * 0.265,
                 width: setsize.width,
                 child: ListView.builder(
-                  physics: BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
-                  itemCount: 7,
+                  itemCount:
+                      onsaleproduct.length <= 7 ? onsaleproduct.length : 7,
                   itemBuilder: (BuildContext context, int index) {
                     return ChangeNotifierProvider.value(
                         value: onsaleproduct[index], child: OnSaleCart());
@@ -150,9 +153,10 @@ class _HomepageState extends State<Homepage> {
                   children: [
                     Row(children: [
                       CustomText(
-                        text: "Our Products",
+                        text: "Our Products".tr(context),
                         istitle: true,
                         color: Colors.black,
+                        titletextsize: 20,
                       ),
                       const SizedBox(
                         width: 10,
@@ -164,7 +168,7 @@ class _HomepageState extends State<Homepage> {
                             .pushNamed(Allproducts_Screen.AllproSc);
                       },
                       child: CustomText(
-                        text: "See all ...",
+                        text: "See all ...".tr(context),
                       ),
                     ),
                   ],
@@ -173,13 +177,11 @@ class _HomepageState extends State<Homepage> {
               GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisExtent: 280,
-                        mainAxisSpacing: 10),
-                itemCount:
-                    allProducts.length < 10 ? allProducts.length : 10,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisExtent: 280,
+                    mainAxisSpacing: 10),
+                itemCount: allProducts.length < 10 ? allProducts.length : 10,
                 itemBuilder: (BuildContext context, int index) {
                   return ChangeNotifierProvider.value(
                       value: allProducts[index], child: ProWid());

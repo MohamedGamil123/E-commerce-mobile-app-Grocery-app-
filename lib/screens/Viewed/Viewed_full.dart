@@ -14,16 +14,16 @@ class Viewed_full extends StatelessWidget {
         viewedProvider.getviewedItems.values.toList().reversed.toList();
     var setsize = Utils(context).getsize();
     return Scaffold(
-      body: Container(
+      body: SizedBox(
         height: setsize.height,
         width: double.infinity,
         child: ListView(
-          physics:const BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           children: [
             Column(
               children: [
                 GridView.builder(
-                  physics:const NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,

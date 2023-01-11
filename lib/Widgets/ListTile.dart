@@ -14,14 +14,12 @@ Widget customlisttile({
     },
     leading: Icon(leadingicon),
     title: CustomText(
-      text:title ,
+      text: title,
       color: Colors.black,
-     
-titletextsize:20 ,
-
+      titletextsize: 20,
     ),
-    subtitle: CustomText(text: subtitle == null ? "" : subtitle,
-    
+    subtitle: CustomText(
+      text: subtitle ?? "",
     ),
     trailing: const Icon(IconlyLight.arrowRight2),
   );

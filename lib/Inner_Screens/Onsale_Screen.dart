@@ -3,11 +3,9 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:grocery_app/Inner_Screens/empty_products_dcreens.dart';
 import 'package:grocery_app/Models/Product_Model.dart';
 import 'package:grocery_app/Providers/Product_Provider.dart';
-
 import 'package:grocery_app/Widgets/OnSaleInCart.dart';
-import 'package:grocery_app/Widgets/Onsale_cart.dart';
-
 import 'package:grocery_app/Widgets/customText.dart';
+import 'package:grocery_app/componants/AppLocals.dart';
 import 'package:provider/provider.dart';
 
 class Onsale_Screen extends StatelessWidget {
@@ -21,27 +19,27 @@ class Onsale_Screen extends StatelessWidget {
     final onsaleprovider = Provider.of<ProductProvider>(context);
     // return is a list take it in instance of list of product model
     List<ProductModel> onsaleproduct = onsaleprovider.getOnsaleProducts;
-   
+
     return Scaffold(
       appBar: AppBar(
         leading: InkWell(
             onTap: () {
               Navigator.of(context).pop();
             },
-            child: Icon(
+            child: const Icon(
               IconlyLight.arrowLeft2,
               color: Colors.black,
             )),
         backgroundColor: Colors.white,
         elevation: 0,
         title: CustomText(
-          text: "Products on sale",
+          text: "Products on sale".tr(context),
           istitle: true,
           color: Colors.black,
         ),
       ),
       body: onsaleproduct.isEmpty
-          ? Empty_products()
+          ? const Empty_products()
           : GridView.builder(
               shrinkWrap: true,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
